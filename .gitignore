@@ -31,6 +31,3 @@ gradle/
 build/
 gradlew.bat
 gradlew
-
-# logs
-*.log
