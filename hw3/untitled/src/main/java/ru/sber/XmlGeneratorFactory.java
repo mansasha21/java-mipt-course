@@ -31,7 +31,6 @@ public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
         addHeader(className, xmlGeneratorName);
         addBody(declaredFields);
         addTail(className);
-        System.out.println(xmlStringBuilder.toString());
         Class generatorClass = CompilerUtils.CACHED_COMPILER.loadFromJava("ru.sber." + xmlGeneratorName,
                 xmlStringBuilder.toString());
         return (XmlGenerator<T>) generatorClass.getDeclaredConstructor().newInstance();
