@@ -1,0 +1,34 @@
+Всем привет!
+
+Задание по Reflection. Дедлайн - следующая суббота включительно:
+
+Написать factory, которая на вход принимает класс и возвращает генератор в json или xml для данного класса.
+Генератор в процессе сериалиации не должен использовать рефлекшен. ru.sber.Factory, используя рефлекшен должна сгенеририровать код, откомпилировать его и загрузить.
+Компилировать код в рантайме можно, например, этим https://github.com/OpenHFT/Java-Runtime-Compiler.
+
+Пример:
+
+Входной класс:
+
+class Person {
+ private final Long id;
+ private final String name;
+ private final String lastName;
+}
+
+Выходной файл json:
+
+{
+ "id": 1,
+ "name": "Petr",
+ "lastName": "Ivanov"
+}
+
+Выходной файл xml:
+
+<?xml version="1.0" encoding="utf-8"?>
+<Person>
+    <Id>1</Id>
+    <Name>Petr</Name>
+    <LastName>Ivanov</LastName>
+</Person>
