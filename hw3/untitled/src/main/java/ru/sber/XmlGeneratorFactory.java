@@ -6,6 +6,7 @@ import net.openhft.compiler.CompilerUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashSet;
 
 public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
@@ -23,8 +24,6 @@ public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
 
     @Override
     public XmlGenerator<T> createGenerator() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-
-
         String className = clazz.getName().substring(clazz.getName().lastIndexOf('.') + 1);
         Field[] declaredFields = getDeclaredFields();
         String xmlGeneratorName = className + "XmlGenerator";
@@ -77,16 +76,24 @@ public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
                 continue;
             }
             Class<?> fieldType = declaredField.getType();
+            xmlStringBuilder.append(".")
+                    .append(KeyWordsAndSymbols.APPEND.getString())
+                    .append(KeyWordsAndSymbols.OPEN_PARENTHESIS_CIRCLE.getString());
+
             if (isFieldPrimitive(fieldType) || fieldType == String.class) {
                 xmlStringBuilder.append(KeyWordsAndSymbols.TAB_SYM.getString())
-                        .append(".")
-                        .append(KeyWordsAndSymbols.APPEND.getString())
-                        .append(KeyWordsAndSymbols.OPEN_PARENTHESIS_CIRCLE.getString())
-                        .append(constructPrimitiveField(fieldName, curInnerLevel, getterName))
-                        .append(KeyWordsAndSymbols.CLOSE_PARENTHESIS_CIRCLE.getString())
-                        .append(KeyWordsAndSymbols.NEXT_LINE.getString());
+                        .append(constructPrimitiveField(fieldName, curInnerLevel, getterName));
+            } else if (Collection.class.isAssignableFrom(fieldType)) {
+                xmlStringBuilder.append(KeyWordsAndSymbols.TAB_SYM.getString())
+                        .append(constructCollectionField(fieldName, curInnerLevel, getterName));
+            } else if (fieldType.isArray()) {
+                xmlStringBuilder.append(KeyWordsAndSymbols.TAB_SYM.getString())
+                        .append(constructArrayField(fieldName, curInnerLevel, getterName));
+            } else {
+                xmlStringBuilder.append("");
             }
-
+            xmlStringBuilder.append(KeyWordsAndSymbols.CLOSE_PARENTHESIS_CIRCLE.getString())
+                    .append(KeyWordsAndSymbols.NEXT_LINE.getString());
         }
     }
 
@@ -138,6 +145,7 @@ public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
         return declaredFields;
     }
 
+    //Немного дублирования кода :)
     private String constructPrimitiveField(String name, Integer innerLevel, String getterName) {
         StringBuilder tagBuilder = new StringBuilder();
         tagBuilder.append("\"");
@@ -148,6 +156,32 @@ public class XmlGeneratorFactory<T> implements GeneratorFactory<T> {
         }
         var classNameLower = this.className.toLowerCase().charAt(0) + this.className.substring(1);
         tagBuilder.append("<" + name + ">\" + " + classNameLower + "." + getterName + "()" + " + \"<\\\\" + name + ">\"");
+        return tagBuilder.toString();
+    }
+
+    private String constructCollectionField(String name, Integer innerLevel, String getterName) {
+        StringBuilder tagBuilder = new StringBuilder();
+        tagBuilder.append("\"");
+        tagBuilder.append("\\n");
+
+        for (int i = 0; i < innerLevel; i++) {
+            tagBuilder.append(KeyWordsAndSymbols.TAB_SYM.getString());
+        }
+        var classNameLower = this.className.toLowerCase().charAt(0) + this.className.substring(1);
+        tagBuilder.append("<" + name + ">\" + " + classNameLower + "." + getterName + "().toString()" + " + \"<\\\\" + name + ">\"");
+        return tagBuilder.toString();
+    }
+
+    private String constructArrayField(String name, Integer innerLevel, String getterName) {
+        StringBuilder tagBuilder = new StringBuilder();
+        tagBuilder.append("\"");
+        tagBuilder.append("\\n");
+
+        for (int i = 0; i < innerLevel; i++) {
+            tagBuilder.append(KeyWordsAndSymbols.TAB_SYM.getString());
+        }
+        var classNameLower = this.className.toLowerCase().charAt(0) + this.className.substring(1);
+        tagBuilder.append("<" + name + ">\" + java.util.Arrays.toString(" + classNameLower + "." + getterName + "()" + ") + \"<\\\\" + name + ">\"");
         return tagBuilder.toString();
     }
 }
