@@ -31,7 +31,7 @@ public class DispatcherImpl implements Dispatcher {
     public void notifyAvailable(Taxi taxi) {
         completedOrders += 1;
         freeTaxis.add(taxi);
-        System.out.println("Order " + completedOrders + " completed");
+        //System.out.println("Order " + completedOrders + " completed");
     }
 
     @Override
