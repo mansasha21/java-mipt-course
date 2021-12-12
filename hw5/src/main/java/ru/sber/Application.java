@@ -5,11 +5,11 @@ import java.util.List;
 
 public class Application {
     public static void main(String[] args) {
-        Integer maxOrders = 100;
+        Integer maxOrders = 15;
         Integer taxisAmount = 10;
 
         var dispatcher = new DispatcherImpl(maxOrders);
-        List<Taxi> taxis = new ArrayList<Taxi>(taxisAmount);
+        List<Taxi> taxis = new ArrayList<>(taxisAmount);
 
         for (int i = 0; i < taxisAmount; i++) {
             var taxi = new TaxiImpl(dispatcher);

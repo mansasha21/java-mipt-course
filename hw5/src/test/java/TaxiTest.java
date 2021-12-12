@@ -54,6 +54,7 @@ public class TaxiTest {
         for (Taxi taxi : taxis) {
             completedOrders += taxi.getExecutedOrders().size();
         }
+
         assertEquals(maxOrders, completedOrders);
     }
 }

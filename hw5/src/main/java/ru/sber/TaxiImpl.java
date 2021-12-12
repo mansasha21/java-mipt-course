@@ -1,36 +1,27 @@
 package ru.sber;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class TaxiImpl implements Taxi {
-    private final Dispatcher dispatcher;
-    private volatile Order curOrder;
-    private ArrayList<Order> executedOrders;
+    private final DispatcherImpl dispatcher;
+    private volatile Order curOrder = null;
+    private final List<Order> executedOrders = new ArrayList<>();
 
-    public TaxiImpl(Dispatcher dispatcher) {
-        curOrder = null;
-        executedOrders = new ArrayList<>();
+    public TaxiImpl(DispatcherImpl dispatcher) {
         this.dispatcher = dispatcher;
     }
 
     @Override
     public void run() {
 
-        Instant startMoment = Instant.now();
-        Instant curMoment = startMoment;
-
-        while (Duration.between(startMoment, curMoment).toSeconds() < 30) {
-            curMoment = Instant.now();
-            if (curOrder == null) {
-                continue;
+        while (true) {
+            waitOrder();
+            if (curOrder.isStop()) {
+                break;
             }
-            curOrder.run();
-            executedOrders.add(curOrder);
-            curOrder = null;
+            runOrder();
             dispatcher.notifyAvailable(this);
         }
     }
@@ -38,10 +29,32 @@ public class TaxiImpl implements Taxi {
     @Override
     public synchronized void placeOrder(Order order) {
         curOrder = order;
+        this.notify();
     }
 
     @Override
     public List<Order> getExecutedOrders() {
-        return executedOrders;
+        synchronized (executedOrders) {
+            return new ArrayList<>(executedOrders);
+        }
     }
+
+    private void runOrder() {
+        curOrder.run();
+        synchronized (executedOrders) {
+            executedOrders.add(curOrder);
+        }
+        curOrder = null;
+    }
+
+    private synchronized void waitOrder() {
+        while (curOrder == null) {
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
